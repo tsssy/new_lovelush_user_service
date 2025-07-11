@@ -82,11 +82,10 @@ class UserService:
                 return CreateNewFemaleUserResponse(success=False)
             # 提取问题内容
             question_contents = [match.group(1).strip(), match.group(2).strip(), match.group(3).strip()]
-            # 创建问题记录
+            # 创建问题记录，并收集MongoDB自动生成的_id作为question_id
             question_id_list = []
-            for idx, content in enumerate(question_contents):
+            for content in question_contents:
                 question_doc = {
-                    "question_id": idx,
                     "content": content,
                     "telegram_id": telegram_id,
                     "is_draft": False,
@@ -96,15 +95,15 @@ class UserService:
                     "liked_answer_list": [],
                     "is_active": True
                 }
-                qid = await Database.insert_one("Question", question_doc)
+                qid = await Database.insert_one("Question", question_doc)  # qid为MongoDB自动生成的_id
                 question_id_list.append(qid)
-            # 创建用户记录
+            # 创建用户记录，question_list只存question_id
             user_document = {
                 "_id": telegram_id,  # 用telegram_id作为_id
                 "telegram_id": telegram_id,
                 "gender": 1,  # 女性为1
                 "mode": None,
-                "question_list": question_id_list,
+                "question_list": question_id_list,  # 只存question_id
                 "answer_list": [],
                 "paired_user": [],
                 "profile_photo": None,
